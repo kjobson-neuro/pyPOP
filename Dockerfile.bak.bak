@@ -1,0 +1,21 @@
+FROM --platform=linux/amd64 ubuntu:22.04 AS setup
+
+# Create the FW environment
+ENV FLYWHEEL=/flywheel/v0
+RUN mkdir -p ${FLYWHEEL}
+
+# Copy stuff over & change permissions
+COPY ./input/ ${FLYWHEEL}/input/
+COPY ./workflows/ ${FLYWHEEL}/workflows/
+COPY ./pipeline_rPOP.sh ${FLYWHEEL}/   
+COPY ./rPOP-master ${FLYWHEEL}/rPOP-master
+RUN chmod -R 777 ${FLYWHEEL}
+
+FROM --platform=linux/amd64 nipype/nipype
+COPY --from=setup /flywheel/v0 /flywheel/v0
+COPY --from=setup /flywheel/v0/pipeline_rPOP.sh /flywheel/v0/pipeline_rPOP.sh
+
+# Configure entrypoints-
+ENTRYPOINT ["/bin/bash", "/flywheel/v0/pipeline_rPOP.sh"]
+    
+

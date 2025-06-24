@@ -1,0 +1,32 @@
+{
+    "config": {
+        "origin": "Reset",
+        "template": "All"
+    },
+    "inputs": {
+        "petdata": {
+            "base": "file",
+            "location": {
+                "name": "3900_BR_CTAC_Amyloid_Brain_Dyn_Brain-dyn-844047.xml_20240423135725_3900.nii.gz",
+                "path": "/flywheel/v0/input/petdata/3900_BR_CTAC_Amyloid_Brain_Dyn_Brain-dyn-844047.xml_20240423135725_3900.nii.gz"
+            },
+            "object": {
+                "size": 1247297,
+                "type": null,
+                "mimetype": "application/octet-stream",
+                "modality": null,
+                "classification": {},
+                "tags": [],
+                "info": {},
+                "zip_member_count": null,
+                "version": 1,
+                "file_id": "",
+                "origin": {
+                    "type": "user",
+                    "id": ""
+                }
+            }
+        }
+    },
+    "destination": {}
+}

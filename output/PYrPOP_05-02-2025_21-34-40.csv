@@ -1,0 +1,2 @@
+SubjectID,avg_ctx_voi_bin,avg_wc_voi_bin,NeocorticalSUVR,Centilloid,EstimatedFWHMx,EstimatedFWHMy,EstimatedFWHMz,FWHMfilterappliedx,FWHMfilterappliedy,FWHMfilterappliedz,AFNIEstimationRerunMod
+sw_pet.nii.gz,,,,,7.95643,7.57004,7.81664,6.057658099884806,6.534102417195494,6.236997603847544,0

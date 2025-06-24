@@ -1,0 +1,109 @@
+# Dockerfile for PYrPOP Gear
+# original code is written in MATLAB and can be found here: https://github.com/LeoIacca/rPOP
+# krj translated this code into Python to be used on FW Jan 2025
+# AFNI
+
+FROM --platform=linux/amd64 ubuntu:22.04 AS step1
+                    
+# ANTs 2.5.4
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+                    ca-certificates \
+                    build-essential \
+                    curl \
+                    unzip && \
+   apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+   && mkdir /opt/ants && \
+   curl -fsSL https://github.com/ANTsX/ANTs/releases/download/v2.5.4/ants-2.5.4-ubuntu-24.04-X64-gcc.zip -o ants.zip && \
+   unzip ants.zip -d /opt && \
+   rm ants.zip
+
+FROM afni/afni_make_build AS afni
+
+FROM --platform=linux/amd64 ubuntu:22.04
+
+# 
+## Main Stage
+#
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+                    binutils \
+                    bzip2 \
+                    ca-certificates \   
+                    curl \
+                    python3 \
+                    python3-pip \
+                    zip \
+                    jq \
+                    gnupg \
+                    lsb-release \
+                    netbase \
+                    pipx \
+                    dcm2niix \
+                    unzip \
+                    tcsh xfonts-base libssl-dev \
+                    python-is-python3                 \
+                    python3-matplotlib python3-numpy  \
+                    python3-nibabel \
+                    python3-flask python3-flask-cors  \
+                    python3-pil                       \
+                    gsl-bin netpbm gnome-tweaks       \
+                    libjpeg62 xvfb xterm vim curl     \
+                    gedit evince eog                  \
+                    libglu1-mesa-dev libglw1-mesa     \
+                    libxm4 build-essential            \
+                    libcurl4-openssl-dev libxml2-dev  \
+                    libgfortran-11-dev libgomp1       \
+                    gnome-terminal nautilus           \
+                    firefox xfonts-100dpi             \
+                    r-base-dev cmake bc git           \
+                    libgdal-dev libopenblas-dev       \
+                    libnode-dev libudunits2-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY --from=afni /opt /opt
+COPY --from=step1 /opt/ants-2.5.4 /opt/ants-2.5.4
+
+# Installing and setting up miniconda
+RUN curl -sSLO https://repo.continuum.io/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh && \
+    bash Miniconda3-4.5.11-Linux-x86_64.sh -b -p /usr/local/miniconda && \
+    rm Miniconda3-4.5.11-Linux-x86_64.sh
+
+ENV PATH=/usr/local/miniconda/bin:$PATH \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONNOUSERSITE=1
+RUN conda update -y conda
+RUN conda init
+RUN conda install --channel conda-forge nipype \
+                                    numpy \
+                                    nibabel \
+                                    scipy \
+                                    matplotlib \
+                                    python
+
+# Create the FW environment
+ENV FLYWHEEL=/flywheel/v0
+RUN mkdir -p ${FLYWHEEL}
+
+# ANTs config
+ENV ANTSPATH="/opt/ants-2.5.4/bin" \
+    PATH="$ANTSPATH:$PATH"   
+
+# Copy stuff over & change permissions
+COPY ./input/ ${FLYWHEEL}/input/
+COPY ./workflows/ ${FLYWHEEL}/workflows/
+COPY ./pipeline_rPOP.sh ${FLYWHEEL}/
+COPY ./requirements.txt ${FLYWHEEL}/requirements.txt
+COPY ./rPOP-master ${FLYWHEEL}/rPOP-master
+RUN chmod -R 777 ${FLYWHEEL}
+                    
+#RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
+#RUN python3 -m pip install -r ${FLYWHEEL}/requirements.txt
+
+# Configure entrypoints-
+ENTRYPOINT ["/bin/bash", "/flywheel/v0/pipeline_rPOP.sh"]
+
+
+
